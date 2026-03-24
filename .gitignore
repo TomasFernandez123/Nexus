@@ -12,3 +12,5 @@ coverage/
 .vscode/
 *.log
 .DS_Store
+.atl/
+.agent/
