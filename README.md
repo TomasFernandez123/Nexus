@@ -1,143 +1,92 @@
-# NexusCLI Runtime MVP Wiring
+# ⚡ NexusCLI 
 
-Runtime mínimo ejecutable para NexusCLI con dos adapters:
-- CLI (`src/cli/main.ts`)
-- MCP health server (`src/mcp/server.ts`)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-blue.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
+Runtime mínimo ejecutable para NexusCLI, diseñado con una arquitectura de dos adaptadores: una interfaz de línea de comandos (CLI) y un servidor de salud MCP.
+
+![NexusCLI Demo en Terminal](./docs/demo.gif) *(Nota: Acá deberías colocar un GIF corto grabando tu terminal usando la herramienta)*
+
+## Tabla de Contenidos
+- [Requisitos](#requisitos)
+- [Instalación Rápida](#instalación-rápida)
+- [Uso](#uso)
+- [Catálogo MCP (MVP)](#catálogo-mcp-mvp)
+- [Configuración y Entorno](#configuración-y-entorno)
+- [Desarrollo Local](#desarrollo-local)
+- [Troubleshooting](#troubleshooting)
 
 ## Requisitos
 
 - Node.js 20+
 - npm
 
-## Instalación Rápida (Recomendado)
+## Instalación Rápida
 
-### Paso 1: Instalar globalmente
-Cloná el repo y hacé build para que el comando `nexus` quede disponible en tu terminal:
+La forma recomendada de utilizar NexusCLI es instalándolo globalmente en tu sistema.
+
+### 1. Instalar globalmente
+Cloná el repositorio y compilá el proyecto para que el comando `nexus` quede disponible en tu terminal:
 
 ```bash
-git clone https://github.com/tu-usuario/NexusCLI.git
-cd NexusCLI
+git clone https://github.com/TomasFernandez123/Nexus.git
+cd Nexus
 npm install
 npm run build
 npm install -g .
 ```
 
-### Paso 2: Autoconfiguración para OpenCode
-Corré este comando para inyectar la configuración automáticamente en tu OpenCode:
+### 2. Autoconfiguración para OpenCode
+Ejecutá este comando para inyectar la configuración automáticamente en OpenCode (Zero-Config):
 
 ```bash
 nexus mcp setup opencode
 ```
 
-> **¡Listo!** Ahora solo tenés que abrir OpenCode en cualquier carpeta de proyecto. El CLI detectará automáticamente dónde estás, creará una base de datos SQLite aislada para ese proyecto, y vas a poder gestionar tus tareas directamente con la IA.
+> **¡Listo!** Al abrir OpenCode en cualquier carpeta, el CLI detectará tu ubicación, creará una base de datos SQLite aislada para ese proyecto y te permitirá gestionar tareas directamente con la IA.
 
----
+## Uso
 
-## Setup de desarrollo
+Una vez instalado, podés utilizar la CLI directamente:
 
-Si querés aportar al CLI o correrlo sin instalarlo globalmente:
-
-1. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-
-## Flujo zero-config (recomendado)
-
-No necesitás exportar variables para el flujo básico.
-
-1. Usar CLI local:
-   ```bash
-   npm run dev:cli -- --help
-   npm run dev:cli -- init
-   npm run dev:cli -- board
-   ```
-2. Usar MCP en stdio (default para OpenCode):
-   ```bash
-   npm run dev:cli -- mcp
-   ```
-
-## Comandos
-
-- CLI help:
-  ```bash
-  npm run dev:cli -- --help
-  ```
-
-- Inicializar base local (idempotente):
-  ```bash
-  npm run dev:cli -- init
-  ```
-
-- Verificar readiness de DB (conectividad + versión baseline):
-  ```bash
-  npm run dev:cli -- check
-  ```
-
-- Crear tarea:
-  ```bash
-  npm run dev:cli -- add feat "Implementar board local"
-  ```
-
-- Ver tablero pendiente/en progreso:
-  ```bash
-  npm run dev:cli -- board
-  ```
-
-- Completar tarea (intenta commit local automático):
-  ```bash
-  npm run dev:cli -- complete 1
-  ```
-
-- MCP server (health endpoint):
-  ```bash
-  export MCP_PORT=6061
-  npm run dev:mcp
-  ```
-  Luego verificar:
-  ```bash
-  curl http://127.0.0.1:${MCP_PORT}/health
-  ```
+- **Ayuda general:** `nexus --help`
+- **Inicializar base local (idempotente):** `nexus init`
+- **Verificar readiness de DB:** `nexus check`
+- **Crear tarea:** `nexus add feat "Implementar board local"`
+- **Ver tablero:** `nexus board`
+- **Completar tarea (intenta commit automático):** `nexus complete 1`
 
 ## Catálogo MCP (MVP)
 
-Endpoint de tools:
+El servidor expone herramientas mediante el endpoint de tools:
 
-```bash
+### Request HTTP de prueba:
+```http
 POST http://127.0.0.1:${MCP_PORT}/tools/call
 Content-Type: application/json
 ```
 
-Tools disponibles:
+### Tools Disponibles
 
-- `task_list_pending` → lista tareas `todo`/`in_progress` con respuesta paginada consistente (`{ items, next_cursor }`).
-- `task_start` → inicia tarea (`{ "id": number }`; `taskId` sigue soportado temporalmente, deprecado).
-- `task_add_log` → agrega log (`{ "id": number, "text": string }`; `taskId` sigue soportado temporalmente, deprecado).
-- `task_complete` → completa tarea y ejecuta commit local (`{ "id": number }`; `taskId` sigue soportado temporalmente, deprecado).
-- `task_create` → crea tarea (`{ "type": "feat|fix|chore|docs", "title": string, "description?": string }`).
-- `db_init` → inicializa baseline de DB y tracking (`{}`).
-- `db_check` → valida readiness de DB y versión de schema (`{}`).
+| Tool | Descripción | Payload |
+|---|---|---|
+| `task_list_pending` | Lista tareas `todo`/`in_progress` paginadas. | `{}` |
+| `task_start` | Inicia una tarea. | `{ "id": number }` |
+| `task_add_log` | Agrega un log técnico a la tarea. | `{ "id": number, "message": string }` |
+| `task_complete` | Completa tarea y ejecuta commit local. | `{ "id": number }` |
+| `task_create` | Crea una nueva tarea. | `{ "type": "feat\|fix\|chore\|docs", "title": string }` |
+| `db_init` | Inicializa baseline de DB y tracking. | `{}` |
+| `db_check` | Valida readiness de DB y versión. | `{}` |
 
-### `task_list_pending` contract
+### Contrato: `task_list_pending`
 
-Inputs opcionales:
+**Inputs opcionales:**
+- `limit`: Default 100, max 500 (entero positivo).
+- `cursor`: ID existente para paginación (string o number).
 
-- `limit` (default `100`, max `500`, entero positivo)
-- `cursor` (entero positivo existente; string o number)
-
-Forma de respuesta (única):
-
-- Siempre devuelve `{ items: CanonicalTask[], next_cursor: string | null }`, incluso con `input: {}`.
-- `limit` y `cursor` siguen siendo opcionales para paginar explícitamente.
-
-Request/response de referencia:
-
-```json
-{
-  "tool": "task_list_pending",
-  "input": {}
-}
-```
+**Formato de respuesta:**
+Siempre devuelve un objeto con `items` y `next_cursor`.
 
 ```json
 {
@@ -158,65 +107,64 @@ Request/response de referencia:
 }
 ```
 
-Errores de validación relevantes:
+## Configuración y Entorno
 
-- `limit` inválido: `400 { "code": "VALIDATION_ERROR", "error": "limit must be a positive integer" }`
-- `limit` > `500`: `400 { "code": "VALIDATION_ERROR", "error": "limit must be <= 500" }`
-- `cursor` inválido: `400 { "code": "VALIDATION_ERROR", "error": "cursor must be a positive integer" }`
-- `cursor` inexistente: `400 { "code": "VALIDATION_ERROR", "error": "cursor '<id>' not found" }`
-
-- Smoke checks (CLI help + MCP health con timeout):
-  ```bash
-  npm run check:smoke
-  ```
-
-- E2E baseline (local/CI parity):
-  ```bash
-  npm run test:e2e
-  ```
-
-## Variables de entorno opcionales
+El runtime valida la configuración en el arranque y falla rápido con errores explícitos (ej: `Invalid MCP_PORT: 'abc'`).
 
 | Variable | Descripción | Valores válidos |
 |---|---|---|
 | `NODE_ENV` | Modo de ejecución (default: `development`) | `development`, `test`, `production` |
 | `LOG_LEVEL` | Nivel de logging (default: `info`) | `debug`, `info`, `warn`, `error` |
-| `NEXUS_DB_PATH` | Ruta de DB local (default: `path.join(process.cwd(), '.nexus.db')`) | Path de archivo SQLite |
-| `MCP_PORT` | Puerto del servidor MCP en modo HTTP (no aplica a stdio) | Entero entre `1` y `65535` |
+| `NEXUS_DB_PATH` | Ruta de DB local (default: aísla bases de datos bajo `$CWD/.nexuscli/db/<hash>.sqlite` según la carpeta de ejecución) | Path de archivo SQLite |
+| `MCP_PORT` | Puerto del servidor MCP en modo HTTP | Entero entre `1` y `65535` |
 
-## Formato de errores de arranque
+## Desarrollo Local
 
-Cuando hay configuración inválida, el runtime falla rápido con errores explícitos.
+Si querés aportar al CLI o probarlo sin instalarlo globalmente, no necesitás exportar variables de entorno para los comandos básicos.
 
-Ejemplo:
-- Puerto inválido:
-  - `Invalid MCP_PORT: 'abc'. Expected integer between 1 and 65535.`
+### Setup Inicial
+```bash
+npm install
+```
+
+### Ejecución en Desarrollo
+Podés probar los comandos utilizando el script de desarrollo:
+
+- **CLI local:**
+  ```bash
+  npm run dev:cli -- --help
+  npm run dev:cli -- init
+  ```
+- **MCP en stdio (default para OpenCode):**
+  ```bash
+  npm run dev:cli -- mcp
+  ```
+- **MCP server (health endpoint):**
+  ```bash
+  export MCP_PORT=6061
+  npm run dev:mcp
+  ```
+  Verificación: `curl http://127.0.0.1:${MCP_PORT}/health`
+
+### Testing y Validación
+- **Smoke checks:** `npm run check:smoke`
+- **E2E baseline:** `npm run test:e2e`
 
 ## Troubleshooting
 
-Para guía completa de pruebas (incluye E2E baseline y rollout), ver:
-- `docs/testing.md`
+Para una guía completa de pruebas, consultá `docs/testing.md`.
 
-### 1) MCP timeout en smoke
+### Problemas Comunes
 
-Síntoma:
-- `MCP healthcheck timeout after <N>ms`
-
-Acciones:
-- Verificá que `MCP_PORT` esté libre.
-- Aumentá timeout:
+**1. MCP timeout en smoke (`MCP healthcheck timeout`)**
+- Verificá que el puerto definido en `MCP_PORT` esté libre.
+- Aumentá el timeout de la prueba:
   ```bash
   SMOKE_TIMEOUT_MS=10000 npm run check:smoke
   ```
 
-### 2) Variables inválidas al arrancar CLI/MCP
-
-Síntoma:
-- `Invalid NODE_ENV: ...`
-- `Invalid LOG_LEVEL: ...`
-- `Invalid MCP_PORT: ...`
-
-Acciones:
-- Verificá si estás forzando vars inválidas en tu shell/CI.
+**2. Variables inválidas al arrancar**
+- Errores de CLI como `Invalid NODE_ENV: ...`
+- Verificá si estás forzando variables inválidas en tu shell o CI.
 - Para MCP HTTP, definí `MCP_PORT` explícitamente.
-- Para flujo stdio (`nexuscli mcp`), no hace falta `MCP_PORT`.
+- *Nota:* Para el flujo stdio (`nexus mcp stdio` o autoconfigurado), no hace falta definir `MCP_PORT`.
