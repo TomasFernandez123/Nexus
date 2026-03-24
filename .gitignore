@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+
+.nexus*
+.tmp*
+*.db
+*.db-shm
+*.db-wal
+
+.idea/
+.vscode/
+*.log
+.DS_Store

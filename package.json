@@ -1,0 +1,31 @@
+{
+  "name": "nexuscli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "nexus": "dist/src/cli/main.js"
+  },
+  "scripts": {
+    "dev:cli": "tsx src/cli/main.ts",
+    "dev:mcp": "tsx src/mcp/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "check:smoke": "tsx scripts/smoke.ts",
+    "release:gate": "npm run build && npm run typecheck && npm run test",
+    "test:e2e:persistence": "vitest run tests/e2e/persistence.cli-roundtrip.e2e.test.ts tests/e2e/persistence.cli-complete-restart.e2e.test.ts tests/e2e/persistence.cli-storage-failure.e2e.test.ts tests/e2e/persistence.cli-recovery.e2e.test.ts",
+    "test:e2e": "vitest run tests/e2e/harness.unit.test.ts tests/e2e/smoke.cli-help.e2e.test.ts tests/e2e/smoke.cli-help.regression.e2e.test.ts tests/e2e/smoke.mcp-health.e2e.test.ts tests/e2e/smoke.teardown-success.e2e.test.ts tests/scripts/smoke.success.test.ts tests/scripts/smoke.timeout.test.ts tests/scripts/ci-command-parity.test.ts tests/scripts/troubleshooting.docs.evidence.test.ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.13.10",
+    "@vitest/coverage-v8": "^3.2.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0"
+  }
+}

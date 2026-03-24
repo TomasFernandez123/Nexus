@@ -1,0 +1,33 @@
+name: E2E Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run E2E baseline
+        env:
+          NODE_ENV: test
+          MCP_PORT: 6061
+          LOG_LEVEL: error
+          SMOKE_TIMEOUT_MS: 5000
+          SMOKE_POLL_INTERVAL_MS: 150
+        run: npm run test:e2e
