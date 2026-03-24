@@ -3,7 +3,7 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20-blue.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/TomasFernandez123/Nexus)](https://github.com/TomasFernandez123/Nexus/releases)
+[![GitHub release](https://img.shields.io/github/v/release/TomasFernandez123/Nexus?include_prereleases)](https://github.com/TomasFernandez123/Nexus/releases)
 
 Runtime mínimo ejecutable para NexusCLI, diseñado con una arquitectura de dos adaptadores: una interfaz de línea de comandos (CLI) y un servidor de salud MCP.
 
